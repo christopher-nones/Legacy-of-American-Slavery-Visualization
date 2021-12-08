@@ -4,8 +4,12 @@ Slavery in America ended less than 200 years ago. But the Legacy of Slavery is s
 
 A slideshow of visuals depecting the Legacy of American Slaves built using R, GGplot and React JS. Inspired by a visit to The National Memorial for Peace and Justice
 
+Slideshow is viewable at: https://rpubs.com/s3835193/684890
 
-References
+
+
+# References
+
 Figure 1 - Steven Manson, Jonathan Schroeder, David Van Riper, Tracy Kugler, Steven Ruggles. (2020). IPUMS National Historical Geographic Information System: Version 15.0 [dataset]. IPUMS. Retrieved October 25, 2020 from http://doi.org/10.18128/D050.V15.0
 
 Figure 2 - Chris Crawford. (2017). New Orlean’s Slave Sales A dataset of 15,377 slave sales from 1856 - 1861, Version 1. Retrieved October 25, 2020 from https://www.kaggle.com/crawford/new-orleans-slave-sales.
