@@ -56,31 +56,31 @@ This would establish the fate of African Americans forever.
 #Really annoying to have to make a series of similar functions but unavoidable as I'm not sure if R has method overriding and each census dataframe has slightly different variables
 
 cenus_process1 <- function(dataframe){
-  test <- dataframe[c("State Name", "Non-White: Slave", "Data File Year")]
-colnames(test) <- c("state_name", "slaves", "Year")
-return(test)
+  df <- dataframe[c("State Name", "Non-White: Slave", "Data File Year")]
+colnames(df) <- c("state_name", "slaves", "Year")
+return(df)
 }
 
 cenus_process2 <- function(dataframe){
-  test <- dataframe[c("State Name", "Slave", "Data File Year")]
-colnames(test) <- c("state_name", "slaves", "Year")
-return(test)
+  df <- dataframe[c("State Name", "Slave", "Data File Year")]
+colnames(df) <- c("state_name", "slaves", "Year")
+return(df)
 }
 
 cenus_process3 <- function(dataframe){
-  test <- dataframe[c("State Name", "Nonwhite: Slave >> Male", "Nonwhite: Slave >> Female", "Data File Year")]
-  colnames(test) <- c("State Name", "Male", "Female", "Data File Year")
-  test <- test %>%  mutate( Slave = Male + Female, keep = TRUE)
-  test <- test[c("State Name", "Slave", "Data File Year")]
-colnames(test) <- c("state_name", "slaves", "Year")
-return(test)
+  df <- dataframe[c("State Name", "Nonwhite: Slave >> Male", "Nonwhite: Slave >> Female", "Data File Year")]
+  colnames(df) <- c("State Name", "Male", "Female", "Data File Year")
+  df <- df %>%  mutate( Slave = Male + Female, keep = TRUE)
+  df <- df[c("State Name", "Slave", "Data File Year")]
+colnames(df) <- c("state_name", "slaves", "Year")
+return(df)
 }
 
 cenus_process4 <- function(dataframe){
-  test <- dataframe[c("State Name", "Nonwhite: Slave", "Data File Year")]
-colnames(test) <- c("state_name", "slaves", "Year")
-return(test)
-return(test)
+  df <- dataframe[c("State Name", "Nonwhite: Slave", "Data File Year")]
+colnames(df) <- c("state_name", "slaves", "Year")
+
+return(df)
 }
 
 
@@ -182,15 +182,15 @@ ggplot() +
 
 
 ```{r,echo=FALSE, warning=FALSE,message = FALSE, include = FALSE}
-test <- read_csv("data/CalomirisPritchett_data.csv")
-test$Sex <- test$Sex %>% as.factor()
+economy_slavery <- read_csv("data/CalomirisPritchett_data.csv")
+economy_slavery$Sex <- economy_slavery$Sex %>% as.factor()
 
-test$Price <- test$Price %>% as.numeric()
-test$Sex %>% levels()
-test$Sex[is.na(test$Sex)] <- "."
-test$Age <-test$Age %>%  as.numeric()
-test
-test <- test %>% filter(Price < 2500)
+economy_slavery$Price <- economy_slavery$Price %>% as.numeric()
+economy_slavery$Sex %>% levels()
+economy_slavery$Sex[is.na(economy_slavery$Sex)] <- "."
+economy_slavery$Age <-economy_slavery$Age %>%  as.numeric()
+economy_slavery
+economy_slavery <- economy_slavery %>% filter(Price < 2500)
 
 ```
 
@@ -198,11 +198,11 @@ test <- test %>% filter(Price < 2500)
 
 ```{r, fig.height=7, fig.width=12,echo=FALSE, warning=FALSE,message = FALSE}
 
-test$AgeBreaks <- cut(test$Age, breaks = c(0,10,20,30,40,50,60,70,80))
-test$AgeBreaks <- test$AgeBreaks %>% factor(labels  = c("< 10","<20","< 30","< 40","< 50","< 60","< 70","< 80"))
-test <- test %>% filter(!is.na(AgeBreaks))
-test$PresentValue <- test$PresentValue %>% as.numeric()
-p <- ggplot(test, aes(y=AgeBreaks, x=Price)) + 
+economy_slavery$AgeBreaks <- cut(economy_slavery$Age, breaks = c(0,10,20,30,40,50,60,70,80))
+economy_slavery$AgeBreaks <- economy_slavery$AgeBreaks %>% factor(labels  = c("< 10","<20","< 30","< 40","< 50","< 60","< 70","< 80"))
+economy_slavery <- economy_slavery %>% filter(!is.na(AgeBreaks))
+economy_slavery$PresentValue <- economy_slavery$PresentValue %>% as.numeric()
+p <- ggplot(economy_slavery, aes(y=AgeBreaks, x=Price)) + 
   geom_density_ridges(fill = "2D2926FF#'",size = 0, rel_min_height = 0.02, alpha = 0.7, ) + theme_wsj(color = 'gray')+ 
   labs(title = "<strong><span style='color:#FFFFFF'>Distribution of How Much</span><strong><span style='color:#ab455a'> Slaves</span><strong><span style='color:#FFFFFF'> Were Sold For in New Orleans from 1856 - 1861*</span>")+
   xlab("$ value") +
