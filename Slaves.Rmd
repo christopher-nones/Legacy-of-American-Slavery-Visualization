@@ -1,0 +1,561 @@
+---
+title: "The Legacy of American Slavery"
+author: "C. Nones"
+output: 
+  revealjs::revealjs_presentation:
+    theme: blood
+    transition: fade
+    
+---
+
+```{r, include = FALSE}
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(readr)
+library(readxl)
+library(tidyr)
+library(gganimate)
+library(scales)
+library(fuzzyjoin)
+library(stringi)
+library(ggthemes)
+library(urbnmapr)
+library(viridis)
+library(ggtext)
+library(extrafont)
+library(ggridges)
+library(RColorBrewer)
+library(ggplot2)
+library(dplyr)
+library(rgeos)
+library(maptools)
+library(ggmap)
+library(broom)
+library(rgdal)
+library(gridExtra)
+library(stringr)
+library(tidyverse)
+library(ggpubr)
+```
+
+
+##
+<br>
+<br>
+In 1619, roughly 20 Africans were brought to the American colony, Point Comfort in Virginia. They would be the first of an estimated 30,000 Africans to be sold into slavery in America.
+<br>
+<br>
+<br>
+<br>
+This would establish the fate of African Americans forever.
+
+
+```{r,echo=FALSE, warning=FALSE,message = FALSE, include = FALSE}
+getIt <- function(dataframe){
+  test <- dataframe[c("State Name", "Non-White: Slave", "Data File Year")]
+colnames(test) <- c("state_name", "slaves", "Year")
+return(test)
+}
+
+getIt2 <- function(dataframe){
+  test <- dataframe[c("State Name", "Slave", "Data File Year")]
+colnames(test) <- c("state_name", "slaves", "Year")
+return(test)
+}
+
+getIt3 <- function(dataframe){
+  test <- dataframe[c("State Name", "Nonwhite: Slave >> Male", "Nonwhite: Slave >> Female", "Data File Year")]
+  colnames(test) <- c("State Name", "Male", "Female", "Data File Year")
+  test <- test %>%  mutate( Slave = Male + Female, keep = TRUE)
+  test <- test[c("State Name", "Slave", "Data File Year")]
+colnames(test) <- c("state_name", "slaves", "Year")
+return(test)
+}
+
+getIt4 <- function(dataframe){
+  test <- dataframe[c("State Name", "Nonwhite: Slave", "Data File Year")]
+colnames(test) <- c("state_name", "slaves", "Year")
+return(test)
+return(test)
+}
+
+
+```
+
+
+```{r,echo=FALSE, warning=FALSE,message = FALSE, include=FALSE}
+s1790 <- read_csv("data/nhgis0002_ds1_1790_county.csv", skip =1)
+s1800 <- read_csv("data/nhgis0002_ds2_1800_state.csv", skip =1)
+s1810<- read_csv("data/nhgis0002_ds3_1810_state.csv", skip =1)
+s1820<- read_csv("data/nhgis0002_ds4_1820_state.csv", skip =1)
+s1830 <- read_csv("data/nhgis0002_ds5_1830_state.csv", skip =1)
+s1840 <-  read_csv("data/nhgis0001_ds7_1840_state.csv", skip = 1)
+s1850 <-  read_csv("data/nhgis0001_ds10_1850_state.csv", skip = 1)
+s1860 <- read_csv("data/nhgis0001_ds14_1860_state.csv", skip=1)
+
+s1790 <- getIt(s1790)
+s1800 <- getIt2(s1800)
+s1810 <- getIt2(s1810)
+s1820 <- getIt3(s1820)
+s1830 <- getIt2(s1830)
+s1840 <- getIt4(s1840)
+s1850 <- getIt4(s1850)
+s1860 <-getIt2(s1860)
+
+allYears <- bind_rows(s1790, s1800, s1810, s1820, s1830, s1840,s1850, s1860)
+allYears <- allYears %>% filter(slaves > 0)
+
+spatial1790 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1790$Year <- rep(1790)
+
+spatial1800 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1800$Year <- rep(1800)
+
+spatial1810 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1810$Year <- rep(1810)
+
+spatial1820 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1820$Year <- rep(1820)
+
+spatial1830 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1830$Year <- rep(1830)
+
+spatial1840 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1840$Year <- rep(1840)
+
+spatial1850 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1850$Year <- rep(1850)
+
+spatial1860 <- get_urbn_map(map = "states", sf = TRUE)
+spatial1860$Year <- rep(1860)
+
+
+spatial_data <- bind_rows(spatial1790, spatial1800, spatial1810, spatial1820, spatial1830, spatial1840, spatial1850, spatial1860)
+
+spatial_data <- full_join(spatial_data,allYears,
+                          by = c("state_name", "Year"))
+
+spatial_data$slaves[is.na(spatial_data$slaves)] <- 0
+spatial_data <- spatial_data %>% filter(state_name != "Alaska")
+spatial_data <- spatial_data %>% filter(state_name != "Hawaii")
+
+
+spatial_data
+```
+
+
+##  {data-transition-speed="slow"}
+
+```{r,echo=FALSE, warning=FALSE,message = FALSE, fig.width=16, fig.height=10}
+ggplot() +
+  geom_sf(spatial_data,
+          mapping = aes(fill = slaves),
+          color = "#ffffff", size = 0.05) +
+  labs(fill = "slaves", title = "The Spread of Slavery across the United States",subtitle = "Slaves reported for Census Year <span style='color:#ab455a'> {current_frame} </span>" )+# Fill color
+   scale_fill_continuous(low = '#405f70', high = '#ab455a', labels = comma, ,
+      name = "# of Slaves"
+    ) + theme_wsj(color = 'blue')   +theme(legend.position = "right",legend.direction="vertical",
+                                    axis.line = element_blank(),
+
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.title  = element_text(size = 7),
+    plot.title = element_text(size = 27, family = "Harding Text Web Bold"),
+    plot.subtitle = element_markdown(size = 17, family = "Harding Text Web Regular"),
+     plot.caption = element_markdown(size = 10, family = "Harding Text Web Regular")
+    )  + labs(caption = "Source: US Cenus Bereau from Manson(2020)") +
+  transition_manual(Year) + enter_grow() +
+  exit_fade() + exit_shrink() 
+    
+```
+<p style="margin:10px;font-size:50%;"> With the abolishment of the Atlantic Slave Trade the domestic slave trade saw a large boom with slaves being ported mostly around the Southern States.
+</p>
+
+
+```{r,echo=FALSE, warning=FALSE,message = FALSE, include = FALSE}
+test <- read_csv("data/CalomirisPritchett_data.csv")
+test$Sex <- test$Sex %>% as.factor()
+
+test$Price <- test$Price %>% as.numeric()
+test$Sex %>% levels()
+test$Sex[is.na(test$Sex)] <- "."
+test$Age <-test$Age %>%  as.numeric()
+test
+test <- test %>% filter(Price < 2500)
+
+```
+
+##
+
+```{r, fig.height=7, fig.width=12,echo=FALSE, warning=FALSE,message = FALSE}
+
+test$AgeBreaks <- cut(test$Age, breaks = c(0,10,20,30,40,50,60,70,80))
+test$AgeBreaks <- test$AgeBreaks %>% factor(labels  = c("< 10","<20","< 30","< 40","< 50","< 60","< 70","< 80"))
+test <- test %>% filter(!is.na(AgeBreaks))
+test$PresentValue <- test$PresentValue %>% as.numeric()
+p <- ggplot(test, aes(y=AgeBreaks, x=Price)) + 
+  geom_density_ridges(fill = "2D2926FF#'",size = 0, rel_min_height = 0.02, alpha = 0.7, ) + theme_wsj(color = 'gray')+ 
+  labs(title = "<strong><span style='color:#FFFFFF'>Distribution of How Much</span><strong><span style='color:#ab455a'> Slaves</span><strong><span style='color:#FFFFFF'> Were Sold For in New Orleans from 1856 - 1861*</span>")+
+  xlab("$ value") +
+  ylab("Age Bracket")+
+  theme(axis.title = element_text(size = 14)) +
+  scale_x_continuous(breaks = seq(0, 2500, by = 500),labels = scales::dollar_format())+ theme(panel.background = element_rect(fill = "#2D2926FF"), 
+                                                                                              plot.background = element_rect(fill = "#2D2926FF"), 
+                                                                                              axis.title = element_text(color = "white", ), 
+                                                                                              axis.text = element_text(color = 'white'), 
+                                                                                              plot.title =  element_markdown(size = 20, family = "Harding Text Web Bold"), 
+                                                                                               axis.line = element_line(color = 'white'), 
+                                                                                              plot.caption = element_text(color = 'white', size = 10,  family = "Harding Text Web Regular"),
+                                                                                              legend.position = 'blank') + labs(caption = "*Outliers removed \nSource: Kaggle - New Orlean's Slave Sales
+A dataset of 15,377 slave sales from 1856 - 1861")
+
+p
+```
+
+<p style="margin:10px;font-size:50%;"> In New Orleans, adults in their prime years were mostly worth ~$1000, with children and elderly being sold for less than $500 </p>
+
+```{r,echo=FALSE, warning=FALSE,message = FALSE, include = FALSE}
+
+lynching <- read_csv("data/historical-american-lynching.csv")
+lynching$County <- paste(lynching$County, " County")
+
+lynching <- lynching %>% filter(Race == "Blk")
+lynching
+```
+
+##
+<br>
+<br>
+In 1861 the American Civil war started between the Northern Union and the Southern Confederate.
+
+This was a war fought for the freedom of slaves.
+
+In 1865, victory for the Union saw slavery being abolished America. 
+<br>
+<br>
+
+But this would not be the end of the persecution of African Americans.
+
+```{r,echo=FALSE, warning=FALSE,message = FALSE, include = FALSE}
+lynching <- lynching[c("Year", "County")]
+lynching
+lynchings <- lynching %>% group_by(County) %>% summarise(count = n())
+colnames(lynchings) <- c("county_name", "count" )
+
+spatial_data3 <- stringdist_left_join(get_urbn_map(map = "counties", sf = TRUE),lynchings,
+                          by = "county_name")
+
+spatial_data3$count[is.na(spatial_data3$count)] <- 0
+spatial_data3 <- spatial_data3 %>% filter(state_name != "Hawaii")
+spatial_data3 <- spatial_data3 %>% filter(state_name != "Alaska")
+
+```
+
+##
+
+```{r,echo=FALSE, warning=FALSE,message = FALSE, fig.width=16, fig.height=10}
+ggplot() +
+  geom_sf(spatial_data3,
+          mapping = aes(fill = count, geometry = geometry),
+          color = "#ffffff", size = 0.05) +
+  labs(fill = "count", title = "Reorded Lynchings of Negros from 1882 - 1930",subtitle = "" )+# Fill color
+   scale_fill_continuous(low = '#012437', high = '#ab455a', labels = comma,  guide = guide_legend(
+      keyheight = unit(7, units = "mm"),
+      title.position = 'bottom',
+      reverse = F),
+      name = "# of Lynchings"
+    ) + theme_wsj(color = 'blue')   +theme(
+                                    axis.line = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.title  = element_text(size = 7),
+    plot.title = element_text(size = 20, family = "Harding Text Web Bold"),
+    plot.subtitle = element_text(size = 9),
+    legend.position = c(0.1,0),
+    plot.caption = element_text(size = 10, family = "Harding Text Web Regular")
+    ) + labs(caption = "Source: Kaggle - Historical American Lynching: Information on 2806 lynchings in the United States
+")
+```
+<p style="margin:10px;font-size:50%;"> Freedom for Slaves did not mean they were treated equally. </p>
+<p style="margin:10px;font-size:50%;">This data is far from exhaustive but gives some indication to the extent of injustice. Nearly 30 years after this the civil rights movement would do a lot to bring rights to the descendants of slaves. </p>
+
+```{r, include = FALSE}
+poverty <- read_excel("data/tableB-6_modified.xls", sheet = 2)
+poverty <- poverty %>% filter(Race != "ALL RACES")
+poverty$Year <- poverty$Year %>% as.Date(format = "%Y")
+
+poverty
+```
+##
+
+
+
+```{r, fig.height = 8, fig.width=12, echo = FALSE, message= FALSE}
+leColors <- scale_color_manual(values = c("BLACK" = "#ab455a", "ASIAN" = "#a88205", "HISPANIC" = "#038530", "WHITE" = "#FFFFFF"))
+
+ggplot(poverty, aes(x = Year, y = Percent, color = Race)) + geom_line(size = 1.5,) + geom_point(size = 2) + leColors  + theme_wsj(color = 'gray')+ 
+  labs(title = "Percentage of Individuals under Poverty line by Race") +
+  ylab("Percent of Race in Poverty")+
+  theme(axis.title = element_text(size = 14)) + theme(panel.background = element_rect(fill = "#2D2926FF"), 
+                                                      
+                                                                                            
+                                                      plot.background = element_rect(fill = "#2D2926FF"), 
+                                                                                            
+                                                      axis.title = element_text(color = "white", ), 
+                                                                                              
+                                                      axis.text = element_text(color = 'white'), 
+                                                                                              
+                                                      plot.title =  element_text(color = 'white', family = "Harding Text Web Bold"), 
+                                                                                               
+                                                      axis.line = element_line(color = 'white'), 
+                                                      legend.background = element_rect(fill = "#2D2926FF", color = "#2D2926FF"),
+                                                      legend.text = element_text(color = 'white'),
+                                                      legend.title = element_blank(),
+                                                      legend.key = element_rect(fill = "#2D2926FF"),
+                                                      legend.position = 'bottom',
+                                                      plot.caption = element_text(color = 'white', size = 10,  family = "Harding Text Web Regular")
+                                                      )+ scale_y_continuous(labels = scales::percent)  + labs(caption = "Source: US Cenus Bureau")
+```
+<p style="margin:10px;font-size:50%;"> Black people have been and still are disproportionately stuck in poverty when compared to White people. While things have gotten much better, there is still a long way until equality.
+</p>
+
+##
+
+
+```{r,include = FALSE}
+mobility <- read_csv("data/table_7.csv")
+mobility <- mobility %>% filter(gender == "P")
+mobility <- mobility[,-3]
+mobilityKids <- mobility[,0:6]
+mobilityKids 
+colnames(mobilityKids) <- c("kid_race", "gender", "Less than High School", "High School", "Some College/Associates", "Bachelors")
+mobilityKids <- mobilityKids %>% gather(`Less than High School`:Bachelors, key = "status", value = "value")
+
+
+mobilityKids$status <- mobilityKids$status %>% factor(levels= c( "Less than High School","High School", "Some College/Associates", "Bachelors"), ordered = TRUE)
+
+```
+
+```{r,echo = FALSE, fig.height = 8, fig.width=12}
+
+ggplot(mobilityKids, aes(y = value, x = kid_race, fill = str_wrap(status,20))) + geom_bar(stat = 'identity',aes(fill = status))+ theme_wsj() + theme(panel.background = element_rect(fill = "#2D2926FF"), 
+                                                      
+                                                                                            
+                                                      plot.background = element_rect(fill = "#2D2926FF"), 
+                                                                                            
+                                                      axis.title = element_text(color = "white", ), 
+                                                                                              
+                                                      axis.text = element_text(color = 'white'), 
+                                                                                              
+                                                      plot.title =  element_text(color = 'white', family = "Harding Text Web Bold", size = 15), 
+                                                                                               
+                                                      axis.line = element_line(color = 'white'), 
+                                                      legend.background = element_rect(fill = "#2D2926FF", color = "#2D2926FF"),
+                                                      legend.text = element_text(color = 'white'),
+                                                      legend.title = element_blank(),
+                                                      legend.key = element_rect(fill = "#2D2926FF"),
+                                                      legend.position = 'bottom',
+                                                      plot.caption = element_text(color = 'white', size = 10,  family = "Harding Text Web Regular"),
+                                                      plot.subtitle = element_text(color = 'white', size = 12,  family = "Harding Text Web Regular")
+                                                    
+                                                      ) + labs(title = "The Educational Attainment of Children Born to particular Race", 
+                                                               subtitle = "From Census data and 2005 -2014 American Community Surveys", caption = "Source: Opportunity Insights") + xlab("Race") + ylab("Proportion") +
+  scale_fill_brewer(palette = "Dark2") 
+
+```
+<p style="margin:10px;font-size:50%;"> With higher rates of poverty. Black people have less opportunity for upward mobility. Children to Black parents are much less likely to earn a Bachelors degree and are more likely than Children to White parents to not even graduate High School.
+</p>
+
+
+
+
+```{r, include = FALSE}
+quintiles <- read_csv("data/table_2-3.csv")
+quintiles <- quintiles %>% filter(gender == "P")
+quintiles <- quintiles %>% filter(kid_race != "All")
+
+
+quintiles <- quintiles[,c(1,9:13)]
+
+quintiles <- quintiles %>%  gather(kfr_q1:kfr_q5, key = "quintile", value = "proportion")
+
+quintiles$quintile <- quintiles$quintile %>% factor(levels = c("kfr_q1","kfr_q2","kfr_q3","kfr_q4", "kfr_q5"), labels = c(1,2,3,4, 5), ordered = TRUE)
+quintiles$quintile %>% levels()
+
+# quintiles <- na.omit(quintiles)
+
+```
+
+
+
+
+##
+
+```{r, include = FALSE}
+
+fig6 <- ggplot(quintiles, aes(x = kid_race, y = proportion, fill= quintile)) + geom_bar(stat = 'identity', position = position_dodge())  + theme_wsj()+ theme(panel.background = element_rect(fill = "#2D2926FF"), 
+                                                      
+                                                                                            
+                                                      plot.background = element_rect(fill = "#2D2926FF"), 
+                                                                                            
+                                                      axis.title = element_text(color = "white", ), 
+                                                                                              
+                                                      axis.text = element_text(color = 'white'), 
+                                                                                              
+                                                      plot.title =  element_text(color = 'white', family = "Harding Text Web Bold", size = 15), 
+                                                                                               
+                                                      axis.line = element_line(color = 'white'), 
+                                                      legend.background = element_rect(fill = "#2D2926FF", color = "#2D2926FF"),
+                                                      legend.text = element_text(color = 'white'),
+                                                      legend.title = element_text(color = 'white', family = "Harding Text Web Regular" ),
+                                                      legend.key = element_rect(fill = "#2D2926FF"),
+                                                      legend.position = 'bottom',
+                                                      plot.caption = element_text(color = 'white', size = 10,  family = "Harding Text Web Regular"),
+                                                      plot.subtitle = element_text(color = 'white', size = 12,  family = "Harding Text Web Regular")
+                                                    
+                                                      ) + labs(title = "The Fraction of Children with Individual Income in a Given Quintile Born to particular Race", 
+                                                               subtitle = "From anonymized longitudinal data covering nearly the entire U.S. population from 1989-2015.", caption = "*AIAN: American Indian and Alaska Natives \nSource: Opportunity Insights & Chetty, Hendren, Jones, and Porter (2018)") + xlab("Race") + ylab("Proportion") +
+  scale_fill_brewer(palette = "Dark2")  + scale_fill_discrete(name = "Income Quintile")
+```
+```{r, echo = FALSE, fig.height = 8, fig.width=12}
+fig6
+```
+
+<p style="margin:10px;font-size:50%;"> In the study "Race and Economic Opportunity in the United States: An Intergenerational Perspective" by Chetty 2018, it was found that the Children of Black Parents had mostly landed in lower quintile brackets based on their individual income.
+</p>
+```{r, include = FALSE}
+white <- read_csv("data/white.csv")
+
+white <- white %>% separate(Name, into= c("County", "State"), sep =",")
+white <- white[,c(2,4)]
+colnames(white) <- c("county_name", "income")
+
+
+whiteData <- merge(get_urbn_map(map = "counties", sf = TRUE), white, by = "county_name")
+whiteData
+
+whiteData <- whiteData %>% filter(state_name != "Hawaii")
+whiteData <- whiteData %>% filter(state_name != "Alaska")
+
+fig5 <- ggplot() +
+  geom_sf(whiteData,
+          mapping = aes(fill = income, geometry = geometry),
+          color = "#ffffff", size = 0.05)  + theme_wsj(color = 'white')   +theme(legend.position = "bottom",
+                                    axis.line = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.title  = element_text(size = 7),
+    plot.title = element_text(size = 12, family = "Harding Text Web Regular", hjust = 0.5),
+    plot.subtitle = element_text(size = 9)
+    )  +
+  scale_fill_gradientn(limits = c(10000, 40000),
+  colours=c("darkorange1", "grey", "navy")) + labs(title = "White Males") +
+    scale_y_continuous(labels=unit_format(unit = "K")) +
+    scale_colour_continuous(labels=unit_format(unit = "K"))
+fig5
+
+
+myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+sc <- scale_colour_gradientn(colours = myPalette(100), limits=c(1, 8))
+
+black <- read_csv("data/black.csv")
+
+black <- black %>% separate(Name, into= c("County", "State"), sep =",")
+black <- black[,c(2,4)]
+colnames(black) <- c("county_name", "income")
+
+
+blackData <- merge(get_urbn_map(map = "counties", sf = TRUE), black, by = "county_name")
+blackData
+
+blackData <- blackData %>% filter(state_name != "Hawaii")
+blackData <- blackData %>% filter(state_name != "Alaska")
+fig4 <- ggplot() +
+  geom_sf(blackData,
+          mapping = aes(fill = income, geometry = geometry),
+          color = "#ffffff", size = 0.05)  + theme_wsj(color = 'white')   +theme(legend.position = "bottom",
+                                    axis.line = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.title  = element_text(size = 7),
+    plot.title = element_text(size = 12, family = "Harding Text Web Regular", hjust = 0.5),
+    plot.subtitle = element_text(size = 9), legend.direction = 'horizontal'
+    ) +
+  scale_fill_gradientn(limits = c(10000, 40000),
+  colours=c("darkorange1", "grey", "navy")) + ggtitle("Black Males")+
+    scale_y_continuous(labels=unit_format(unit = "K")) +
+    scale_colour_continuous(labels=unit_format(unit = "K"))
+fig4
+
+
+
+f4_5 <- ggarrange(fig4, fig5,ncol = 2, common.legend= TRUE, legend = "bottom")  
+```
+
+##
+
+```{r, echo = FALSE, fig.width=16, fig.height=7}
+
+annotate_figure(f4_5,
+top = text_grob("Average individual income for men
+whose parents earned $27k annually", face = "bold", family = "Harding Text Web Bold",size = 20 ), bottom = text_grob("Source: The Opportunity Atlas", color = "black",
+                                  hjust = 1, x = 1, size = 12),) 
+```
+<p style="margin:10px;font-size:50%;"> Black Males born into poor families end up doing worse than their parents which in contrast to White Males who have obtained a higher income than their parents.
+</p>
+<p style="margin:10px;font-size:50%;">
+Slavery in America ended less than 200 years ago. But the Legacy of Slavery is still felt to this day.
+</p>
+##
+References
+<p style="margin:10px;font-size:50%;"> 
+Figure 1 - Steven Manson, Jonathan Schroeder, David Van Riper, Tracy Kugler, Steven Ruggles. (2020). *IPUMS National Historical Geographic Information System*: Version 15.0 [dataset]. IPUMS.  Retrieved October 25, 2020 from
+http://doi.org/10.18128/D050.V15.0
+</p>
+<p style="margin:10px;font-size:50%;"> 
+
+Figure 2 - Chris Crawford. (2017). *New Orlean's Slave Sales A dataset of 15,377 slave sales from 1856 - 1861*, Version 1. Retrieved October 25, 2020 from https://www.kaggle.com/crawford/new-orleans-slave-sales.
+</p>
+<p style="margin:10px;font-size:50%;"> 
+
+Figure 3 - Rachael Tatman. (2017). *Historical American Lynching Information on 2806 lynchings in the United States*, Version 1. Retrieved October 25, 2020 from https://www.kaggle.com/rtatman/historical-american-lynching.
+</p>
+<p style="margin:10px;font-size:50%;"> 
+Figure 4
+U.S. Census Bureau (2019). Table B-5. Poverty Status of People by Family Relationship, Race, and Hispanic Origin: 1959 to 2019.  Retrieved October 27, 2020 from
+https://www.census.gov/data/tables/2020/demo/income-poverty/p60-270.html
+</p>
+<p style="margin:10px;font-size:50%;"> 
+Figures 5 & 6
+Raj Chetty, Nathaniel Hendren, Maggie R. Jones, Sonya R. Porter. (2018) *Race and Economic Opportunity in the United States: An Intergenerational Perspective*.  Retrieved October 31 , 2020 from
+https://opportunityinsights.org/paper/race/
+</p>
+
+<p style="margin:10px;font-size:50%;"> 
+Figure 7
+Raj Chetty, Nathaniel Hendren, Maggie R. Jones, Sonya R. Porter.(2018) *The Opportunity Atlas.* Retrieved October 30, 2020 from
+https://www.opportunityatlas.org/
+*Obtained Individual Income for Low Income, White and Black Race respectively, filtering for Males.
+</p>
+
