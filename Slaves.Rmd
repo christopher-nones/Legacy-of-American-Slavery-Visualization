@@ -52,19 +52,22 @@ This would establish the fate of African Americans forever.
 
 
 ```{r,echo=FALSE, warning=FALSE,message = FALSE, include = FALSE}
-getIt <- function(dataframe){
+
+#Really annoying to have to make a series of similar functions but unavoidable as I'm not sure if R has method overriding and each census dataframe has slightly different variables
+
+cenus_process1 <- function(dataframe){
   test <- dataframe[c("State Name", "Non-White: Slave", "Data File Year")]
 colnames(test) <- c("state_name", "slaves", "Year")
 return(test)
 }
 
-getIt2 <- function(dataframe){
+cenus_process2 <- function(dataframe){
   test <- dataframe[c("State Name", "Slave", "Data File Year")]
 colnames(test) <- c("state_name", "slaves", "Year")
 return(test)
 }
 
-getIt3 <- function(dataframe){
+cenus_process3 <- function(dataframe){
   test <- dataframe[c("State Name", "Nonwhite: Slave >> Male", "Nonwhite: Slave >> Female", "Data File Year")]
   colnames(test) <- c("State Name", "Male", "Female", "Data File Year")
   test <- test %>%  mutate( Slave = Male + Female, keep = TRUE)
@@ -73,7 +76,7 @@ colnames(test) <- c("state_name", "slaves", "Year")
 return(test)
 }
 
-getIt4 <- function(dataframe){
+cenus_process4 <- function(dataframe){
   test <- dataframe[c("State Name", "Nonwhite: Slave", "Data File Year")]
 colnames(test) <- c("state_name", "slaves", "Year")
 return(test)
@@ -94,14 +97,14 @@ s1840 <-  read_csv("data/nhgis0001_ds7_1840_state.csv", skip = 1)
 s1850 <-  read_csv("data/nhgis0001_ds10_1850_state.csv", skip = 1)
 s1860 <- read_csv("data/nhgis0001_ds14_1860_state.csv", skip=1)
 
-s1790 <- getIt(s1790)
-s1800 <- getIt2(s1800)
-s1810 <- getIt2(s1810)
-s1820 <- getIt3(s1820)
-s1830 <- getIt2(s1830)
-s1840 <- getIt4(s1840)
-s1850 <- getIt4(s1850)
-s1860 <-getIt2(s1860)
+s1790 <- cenus_process1(s1790)
+s1800 <- cenus_process2(s1800)
+s1810 <- cenus_process2(s1810)
+s1820 <- cenus_process3(s1820)
+s1830 <- cenus_process2(s1830)
+s1840 <- cenus_process4(s1840)
+s1850 <- cenus_process4(s1850)
+s1860 <-cenus_process2(s1860)
 
 allYears <- bind_rows(s1790, s1800, s1810, s1820, s1830, s1840,s1850, s1860)
 allYears <- allYears %>% filter(slaves > 0)
